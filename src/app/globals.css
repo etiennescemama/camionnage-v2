@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { color-scheme: light; }
+html, body { height: 100%; }
+body { @apply bg-fog text-ink font-sans antialiased; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* planning */
+.slot:hover { background: rgba(39,67,198,.06); }
+.op-block { position: absolute; top: 4px; bottom: 4px; }
