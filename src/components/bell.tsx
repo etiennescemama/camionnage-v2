@@ -9,7 +9,7 @@ export function Bell({ userId }: { userId: string }) {
   const [open, setOpen] = useState(false); const [items, setItems] = useState<N[]>([]);
   useEffect(() => {
     supabase.from('notifications').select('*').eq('destinataire_id', userId).order('created_at', { ascending: false }).limit(20).then(({ data }) => setItems((data ?? []) as N[]));
-    const ch = supabase.channel('notif:' + userId + ':' + Math.random().toString(36).slice(2)).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `destinataire_id=eq.${userId}` }, p => setItems(prev => [p.new as N, ...prev].slice(0, 20))).subscribe();
+    const ch = supabase.channel('notif:' + userId).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `destinataire_id=eq.${userId}` }, p => setItems(prev => [p.new as N, ...prev].slice(0, 20))).subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [userId]); // eslint-disable-line
   const unread = items.filter(i => !i.lu_le).length;
