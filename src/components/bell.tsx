@@ -21,7 +21,7 @@ export function Bell({ userId }: { userId: string }) {
       </button>
       {open && <>
         <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-        <div className="absolute left-0 top-9 z-50 w-80 rounded-lg border border-line bg-paper shadow-lg">
+        <div className="absolute right-0 md:left-0 md:right-auto top-9 z-50 w-[min(20rem,calc(100vw-1.5rem))] rounded-lg border border-line bg-paper shadow-lg">
           <div className="flex items-center justify-between px-3 py-2 border-b border-line text-sm"><span className="font-medium">Notifications</span>{unread > 0 && <button onClick={markAll} className="text-xs text-cobalt">Tout marquer lu</button>}<button onClick={() => setOpen(false)}><X className="h-4 w-4" /></button></div>
           <div className="max-h-96 overflow-y-auto divide-y divide-line">
             {items.length === 0 && <p className="p-4 text-sm text-mute">Rien à signaler.</p>}

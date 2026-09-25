@@ -22,11 +22,11 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
   const isDispatch = me?.role === 'dispatcheur' || me?.role === 'admin';
   const isOwner = me?.id === d.coordinateur_id;
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
       <Link href="/demandes" className="inline-flex items-center gap-1 text-sm text-mute hover:text-ink mb-3"><ArrowLeft className="h-4 w-4" />Demandes</Link>
       <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
         <div>
-          <div className="flex items-center gap-3 flex-wrap"><h1 className="text-2xl font-semibold">{d.client?.nom ?? 'Sans client'}</h1><EtatDemande etat={d.etat} />{d.specifique && <span className="text-xs rounded-full bg-cobalt-soft text-cobalt-ink px-2 py-0.5">spécifique</span>}</div>
+          <div className="flex items-center gap-3 flex-wrap"><h1 className="text-xl md:text-2xl font-semibold">{d.client?.nom ?? 'Sans client'}</h1><EtatDemande etat={d.etat} />{d.specifique && <span className="text-xs rounded-full bg-cobalt-soft text-cobalt-ink px-2 py-0.5">spécifique</span>}</div>
           <div className="text-sm text-mute mt-1 flex flex-wrap gap-x-3"><span className="font-mono">{d.numero}</span>{d.code_affaire && <span>Affaire {d.code_affaire}</span>}<span>{d.coordinateur ? `${d.coordinateur.prenom} ${d.coordinateur.nom}` : ''}</span>{d.dispatcheur && <span>Dispatch : {d.dispatcheur.prenom}</span>}</div>
         </div>
         <DemandeActions id={d.id} numero={d.numero} etat={d.etat} isDispatch={isDispatch} isOwner={isOwner} />

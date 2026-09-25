@@ -88,9 +88,9 @@ export default function NouvelleDemande() {
   }
 
   if (!sc) return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto">
       <Link href="/demandes" className="inline-flex items-center gap-1 text-sm text-mute hover:text-ink mb-3"><ArrowLeft className="h-4 w-4" />Demandes</Link>
-      <h1 className="text-2xl font-semibold mb-1">Nouvelle demande</h1>
+      <h1 className="text-xl md:text-2xl font-semibold mb-1">Nouvelle demande</h1>
       <p className="text-sm text-mute mb-5">Quel type d'opération ? Le scénario pré-remplit les opérations, les moyens et les durées — vous ajustez ensuite.</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {scenarios.map(s => (
@@ -111,9 +111,9 @@ export default function NouvelleDemande() {
   );
 
   return (
-    <div className="p-6 max-w-6xl mx-auto pb-28">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto pb-28">
       <button type="button" onClick={() => setSc(null)} className="inline-flex items-center gap-1 text-sm text-mute hover:text-ink mb-3"><ArrowLeft className="h-4 w-4" />Changer de scénario</button>
-      <h1 className="text-2xl font-semibold mb-1">{sc.libelle}</h1>
+      <h1 className="text-xl md:text-2xl font-semibold mb-1">{sc.libelle}</h1>
       <p className="text-sm text-mute mb-5">{sc.description}{specifique && <span className="ml-2 text-cobalt-ink font-medium">Opération spécifique.</span>}</p>
       <form onSubmit={submit} className="grid gap-4 lg:grid-cols-[1fr_380px]">
         <div className="space-y-4">

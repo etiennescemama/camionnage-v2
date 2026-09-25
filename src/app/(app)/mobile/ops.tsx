@@ -34,7 +34,7 @@ function Ordre({ op }: { op: any }) {
   const now = () => new Date().toISOString();
   const adr = op.adresse ?? '';
   return (
-    <div className="rounded-lg border border-line bg-paper overflow-hidden">
+    <div className="rounded-lg border border-line bg-paper overflow-x-auto">
       <button onClick={() => setOpen(!open)} className="w-full text-left p-4">
         <div className="flex items-center justify-between gap-2"><div className="text-2xl font-semibold">{fmtHeure(op.heure_debut)}</div><EtatOp etat={op.etat} /></div>
         <div className="font-medium mt-1">{op.demande.client?.nom ?? '—'}</div>

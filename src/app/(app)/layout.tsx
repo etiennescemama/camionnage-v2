@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { currentUser } from '@/lib/auth';
-import { Sidebar } from '@/components/sidebar';
+import { Sidebar, MobileBars } from '@/components/sidebar';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const me = await currentUser();
   if (!me) redirect('/login');
@@ -10,7 +10,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex">
       <Sidebar user={me} />
-      <main className="flex-1 min-w-0">{children}</main>
+      <MobileBars user={me} />
+      <main className="app-main flex-1 min-w-0">{children}</main>
     </div>
   );
 }

@@ -20,7 +20,7 @@ export function Users({ users, equipiers, meId }: { users: any[]; equipiers: any
   async function patch(id: string, body: any) { const res = await fetch('/api/admin/utilisateurs', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, ...body }) }); if (!res.ok) alert((await res.json()).error); else r.refresh(); }
   async function reset(u: any) { const p = gen(); if (!confirm(`Nouveau mot de passe pour ${u.prenom} ${u.nom} : ${p}\n\nNotez-le, il ne sera plus affiché.`)) return; await patch(u.id, { password: p }); }
   return (
-    <div className="p-6 max-w-6xl mx-auto grid gap-4 lg:grid-cols-[1fr_360px]">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto grid gap-4 lg:grid-cols-[1fr_360px]">
       <div className="rounded-lg border border-line bg-paper overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="text-xs text-mute"><tr><th className="text-left px-4 py-2 font-medium">Nom</th><th className="text-left px-4 py-2 font-medium">Email</th><th className="text-left px-4 py-2 font-medium">Rôle</th><th className="text-left px-4 py-2 font-medium">Actif</th><th /></tr></thead>

@@ -20,8 +20,8 @@ export default async function Programme() {
   const ops = opsSemaine ?? [];
   const groups = [{ label: "Aujourd'hui", items: ops.filter((o: any) => o.date_prevue === today) }, { label: 'Demain', items: ops.filter((o: any) => o.date_prevue === tomorrow) }, { label: 'Cette semaine', items: ops.filter((o: any) => o.date_prevue > tomorrow) }];
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-5"><div><h1 className="text-2xl font-semibold">Bonjour {me?.prenom}</h1><p className="text-sm text-mute">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p></div><Link href="/demandes/nouvelle"><Button><Plus className="h-4 w-4" />Nouvelle demande</Button></Link></div>
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-5"><div><h1 className="text-xl md:text-2xl font-semibold">Bonjour {me?.prenom}</h1><p className="text-sm text-mute">{fmtDate(today, { weekday: 'long', day: 'numeric', month: 'long' })}</p></div><Link href="/demandes/nouvelle"><Button><Plus className="h-4 w-4" />Nouvelle demande</Button></Link></div>
       {(notifs ?? []).length > 0 && <div className="mb-4 rounded-lg border border-cobalt/30 bg-cobalt-soft/50 p-3 text-sm space-y-1">{(notifs ?? []).map((n: any) => <Link key={n.id} href={n.demande_id ? `/demandes/${n.demande_id}` : '#'} className="block hover:underline"><strong>{n.titre}</strong>{n.message ? ` — ${n.message}` : ''}</Link>)}</div>}
       <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
         <div className="space-y-4">

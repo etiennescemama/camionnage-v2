@@ -15,8 +15,8 @@ export function Referentiels(p: { camions: any[]; equipiers: any[]; ts: any[]; i
   const [tab, setTab] = useState<typeof TABS[number]>('camions');
   const camOpts = p.camions.map(c => ({ value: c.id, label: c.numero })), eqOpts = p.equipiers.map(e => ({ value: e.id, label: `${e.prenom} ${e.nom ?? ''}` }));
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-1">Référentiels</h1>
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      <h1 className="text-xl md:text-2xl font-semibold mb-1">Référentiels</h1>
       <p className="text-sm text-mute mb-4">Flotte, équipes, temps standards et absences : c'est ce qui alimente la capacité et les créneaux disponibles.</p>
       <div className="flex flex-wrap gap-1.5 mb-4 text-sm">{TABS.map(t => <button key={t} onClick={() => setTab(t)} className={cn('rounded-full px-3 py-1', tab === t ? 'bg-ink text-white' : 'bg-paper border border-line hover:bg-fog')}>{LABELS[t]}</button>)}</div>
       {tab === 'camions' && <Table table="camions" rows={p.camions} pk="id" deleteMode="soft" cols={[

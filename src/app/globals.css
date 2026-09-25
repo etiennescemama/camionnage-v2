@@ -8,3 +8,6 @@ body { @apply bg-fog text-ink font-sans antialiased; }
 /* planning */
 .slot:hover { background: rgba(39,67,198,.06); }
 .op-block { position: absolute; top: 4px; bottom: 4px; }
+
+.app-main{padding-top:calc(48px + env(safe-area-inset-top,0px));padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+@media (min-width:768px){.app-main{padding-top:0;padding-bottom:0}}

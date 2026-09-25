@@ -48,14 +48,14 @@ export function Board({ date, vue, from, to, camions, ops, aPlanifier, indispos,
     : new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
   return (
-    <div className="p-6 max-w-[1700px] mx-auto">
+    <div className="p-4 md:p-6 max-w-[1700px] mx-auto">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={() => go(addDays(date, -step))} aria-label="Précédent"><ChevronLeft className="h-4 w-4" /></Button>
           <Button variant="secondary" size="sm" onClick={() => go(todayYmd())}>Aujourd'hui</Button>
           <Button variant="secondary" size="sm" onClick={() => go(addDays(date, step))} aria-label="Suivant"><ChevronRight className="h-4 w-4" /></Button>
           <input type="date" value={date} onChange={e => go(e.target.value)} className="h-8 rounded-md border border-line bg-paper px-2 text-sm" />
-          <h1 className="ml-2 text-xl font-semibold capitalize">{titre}</h1>
+          <h1 className="w-full md:w-auto md:ml-2 text-lg md:text-xl font-semibold capitalize">{titre}</h1>
         </div>
         <div className="inline-flex rounded-md border border-line bg-paper p-0.5 text-sm">
           {(['jour', 'semaine', 'mois'] as const).map(v => <button key={v} onClick={() => go(date, v)} className={cn('rounded px-3 py-1 capitalize', vue === v ? 'bg-ink text-white' : 'hover:bg-fog')}>{v}</button>)}

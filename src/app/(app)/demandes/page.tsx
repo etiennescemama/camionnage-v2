@@ -24,9 +24,9 @@ export default async function Demandes({ searchParams }: { searchParams: Promise
   const { data } = await q;
   const rows = data ?? [];
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h1 className="text-2xl font-semibold">Demandes</h1>
+        <h1 className="text-xl md:text-2xl font-semibold">Demandes</h1>
         <Link href="/demandes/nouvelle"><Button><Plus className="h-4 w-4" />Nouvelle demande</Button></Link>
       </div>
       <div className="flex flex-wrap items-center gap-1.5 mb-4 text-sm">
@@ -34,7 +34,7 @@ export default async function Demandes({ searchParams }: { searchParams: Promise
         <span className="mx-2 text-line">|</span>
         <Link href={`/demandes?f=${filtre.key}${mine === '1' ? '' : '&mine=1'}`} className={`rounded-full px-3 py-1 ${mine === '1' ? 'bg-cobalt-soft text-cobalt-ink' : 'bg-paper border border-line hover:bg-fog'}`}>Mes demandes</Link>
       </div>
-      <div className="rounded-lg border border-line bg-paper overflow-hidden">
+      <div className="rounded-lg border border-line bg-paper overflow-x-auto">
         {rows.length === 0 ? <p className="p-10 text-center text-sm text-mute">Aucune demande {ETAT_LABEL[filtre.etats[0]].toLowerCase()} pour le moment.</p> : (
           <table className="w-full text-sm">
             <thead className="bg-fog/60 text-xs text-mute"><tr><th className="text-left px-4 py-2 font-medium">N°</th><th className="text-left px-4 py-2 font-medium">Client</th><th className="text-left px-4 py-2 font-medium">Date</th><th className="text-left px-4 py-2 font-medium">Moyens</th><th className="text-left px-4 py-2 font-medium">Opérations</th><th className="text-left px-4 py-2 font-medium">Coordinateur</th><th className="text-left px-4 py-2 font-medium">État</th></tr></thead>
