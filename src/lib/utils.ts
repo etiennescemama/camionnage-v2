@@ -11,4 +11,4 @@ export function fmtDate(s?: string | null, opts: Intl.DateTimeFormatOptions = { 
 }
 export function fmtHeure(t?: string | null) { return t ? t.slice(0, 5) : '—'; }
 export function minToH(m: number) { const h = Math.floor(m / 60), r = m % 60; return r ? `${h}h${String(r).padStart(2, '0')}` : `${h}h`; }
-export function todayYmd() { return ymd(new Date()); }
+export function todayYmd() { const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Paris',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()); const p=(t:string)=>parts.find(x=>x.type===t)!.value;return `${p('year')}-${p('month')}-${p('day')}`; }

@@ -89,3 +89,22 @@ test('Notifications : le résultat le plus récent gagne et les erreurs sont vis
   assert.match(errors.at(-1),/Impossible de charger/);
   stream.dispose();
 });
+
+const {addressText,addressColumns,addressFrom}=load('src/lib/address.ts');
+const {vehicleParameters,summarizeRoute}=load('src/lib/routing.ts');
+test('Adresses : champs séparés, codes postaux conservés et anciennes données préservées',()=>{
+ const a={rue:'1 rue du Test',code_postal:'01230',ville:'Ville',pays:'France',lat:48,lng:2};
+ const cols=addressColumns(a,'enlevement');assert.equal(cols.enlevement_code_postal,'01230');assert.equal(cols.adresse_enlevement,'1 rue du Test, 01230 Ville, France');assert.deepEqual(addressFrom(cols,'enlevement'),a);assert.equal(addressText({rue:'',ville:'',code_postal:'',pays:'France'}),'');assert.equal(addressFrom({adresse_enlevement:'Ancienne adresse complète'},'enlevement').rue,'Ancienne adresse complète');
+});
+test('Routage : profils PL/VL explicites, aucune dimension inventée',()=>{
+ const c={hauteur_cm:350,largeur_cm:250,longueur_cm:900,ptac_kg:19000,essieux:2,poids_lourd:true};
+ assert.equal(vehicleParameters(c).get('transportMode'),'truck');assert.equal(vehicleParameters(c).get('vehicle[currentWeight]'),'19000');assert.equal(vehicleParameters({...c,poids_lourd:false}).get('vehicle[commercial]'),'true');assert.throws(()=>vehicleParameters({...c,hauteur_cm:null}),/incomplet/);
+});
+test('Routage : péage absent reste inconnu, zéros et restrictions conservés',()=>{
+ const section={travelSummary:{length:120000,duration:7200,tolls:{total:{type:'value',currency:'EUR',value:0}}}};
+ assert.equal(summarizeRoute({sections:[section]}).toll_eur,0);
+ assert.equal(summarizeRoute({sections:[{travelSummary:{length:1,duration:1}}]}).toll_eur,null);
+ assert.equal(summarizeRoute({sections:[section,{travelSummary:{}}]}).toll_eur,null);
+ assert.equal(summarizeRoute({sections:[section],notices:[{severity:'critical',title:'restriction'}]}).restricted,true);
+ assert.equal(summarizeRoute({sections:[section,section]}).distance_m,240000);
+});

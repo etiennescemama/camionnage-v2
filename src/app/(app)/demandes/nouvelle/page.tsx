@@ -1,5 +1,8 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import {AddressFields} from '@/components/address-fields';
+import {RoutePlanner} from '@/components/route-planner';
+import {emptyAddress,addressText,addressColumns} from '@/lib/address';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -15,6 +18,7 @@ const split = (s?: string | null) => (s ?? '').split(',').map(x => x.trim()).fil
 
 export default function NouvelleDemande() {
   const r = useRouter(); const supabase = useMemo(() => createClient(), []);
+  const [origin,setOrigin]=useState(emptyAddress); const [destination,setDestination]=useState(emptyAddress); const [fleet,setFleet]=useState<any[]>([]);
   const [referenceLoading, setReferenceLoading] = useState(true);
   const [clientSearch, setClientSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]); const [ts, setTs] = useState<TempsStandard[]>([]); const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -35,9 +39,11 @@ export default function NouvelleDemande() {
       supabase.from('clients').select('*').order('nom'),
       supabase.from('temps_standards').select('*').order('ordre'),
       supabase.from('scenarios').select('*').eq('actif', true).order('ordre'),
-    ]).then(([c,t,s]) => {
+      supabase.from('camions').select('*').eq('actif',true).order('numero'),
+    ]).then(([c,t,s,v]) => {
       if (!alive) return;
       if (c.error || t.error || s.error) throw new Error('Les référentiels ne sont pas disponibles. Actualisez pour réessayer.');
+      setFleet(v.data ?? []);
       setClients((c.data ?? []) as Client[]); setTs((t.data ?? []) as TempsStandard[]); setScenarios((s.data ?? []) as Scenario[]);
     }).catch(e => { if (alive) setErr(e.message); }).finally(() => { if (alive) setReferenceLoading(false); });
     return () => { alive = false; };
@@ -69,6 +75,7 @@ export default function NouvelleDemande() {
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setErr(null);
     if (busy) return;
+    if ((opsAller.some(c=>['enlevement','transfert'].includes(c)) && (!origin.rue || !origin.ville || !origin.pays)) || (opsAller.some(c=>['livraison','installation','transfert'].includes(c)) && (!destination.rue || !destination.ville || !destination.pays))) { setErr('Complétez les rues, villes et pays de départ et d’arrivée.'); return; }
     if (!f.client_id && !f.nouveau_client.trim()) { setErr('Choisissez un client ou indiquez son nom.'); return; }
     if (f.date_retour && f.date_retour < f.date_souhaitee) { setErr('Le retour doit suivre le départ.'); return; }
     if (opsAller.some(c => !ts.some(t => t.type_operation === c)) || opsRetour.some(c => !ts.some(t => t.type_operation === c))) { setErr('Une opération du scénario manque dans les référentiels.'); return; }
@@ -82,7 +89,7 @@ export default function NouvelleDemande() {
       const rotations = Math.max(1, f.nb_camions);
       const { data: d, error: e1 } = await supabase.from('demandes').insert({
         client_id, scenario_code: sc?.code ?? null, code_affaire: f.code_affaire || null, contact_nom: f.contact_nom || null, contact_email: f.contact_email || null, contact_telephone: f.contact_telephone || null,
-        adresse_enlevement: f.adresse_enlevement || null, adresse_livraison: f.adresse_livraison || null, objets: f.objets || null, nb_colis: f.nb_colis ? Number(f.nb_colis) : null, volume_m3: volume || null,
+        ...addressColumns(origin,'enlevement'), ...addressColumns(destination,'livraison'), objets: f.objets || null, nb_colis: f.nb_colis ? Number(f.nb_colis) : null, volume_m3: volume || null,
         date_souhaitee: f.date_souhaitee, creneau: f.creneau, rdv_heure: f.creneau === 'rdv' && f.rdv_heure ? f.rdv_heure : null, date_fin: f.nb_jours > 1 ? addDays(f.date_souhaitee, f.nb_jours - 1) : null,
         date_retour: opsRetour.length ? f.date_retour : null, creneau_retour: opsRetour.length ? f.creneau_retour : null,
         nb_hommes: f.nb_hommes, nb_camions: f.nb_camions, nb_jours: f.nb_jours, type_camion: f.type_camion || null, besoin_hayon: f.besoin_hayon, besoin_clim: f.besoin_clim, observations: f.observations || null,
@@ -95,7 +102,7 @@ export default function NouvelleDemande() {
           const t = ts.find(a => a.type_operation === code); if (!t) continue;
           const suffixe = [jours > 1 ? `J${j}` : '', rotations > 1 ? `camion ${rot}/${rotations}` : '', periode === 'retour' ? 'retour' : ''].filter(Boolean).join(' · ');
           rows.push({ demande_id: d.id, type_operation: code, ordre: ++ordre, periode, jour: j, rotation: rot, libelle: suffixe ? `${t.libelle} — ${suffixe}` : t.libelle,
-            adresse: code === 'livraison' ? (periode === 'retour' ? f.adresse_enlevement : f.adresse_livraison) || null : ['enlevement', 'visite', 'installation'].includes(code) ? (periode === 'retour' ? f.adresse_livraison : f.adresse_enlevement) || null : null,
+            adresse: ['livraison','installation'].includes(code) ? (periode === 'retour' ? addressText(origin) : addressText(destination)) || null : ['enlevement', 'visite', 'transfert'].includes(code) ? (periode === 'retour' ? addressText(destination) : addressText(origin)) || null : null,
             date_prevue: addDays(baseDate, j - 1), duree_min: dur(code), etat: 'a_planifier' });
         }
       };
@@ -149,13 +156,14 @@ export default function NouvelleDemande() {
           </Panel>
           <Panel title="Adresses et objets">
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Adresse d'enlèvement / départ"><Textarea value={f.adresse_enlevement} onChange={e => set('adresse_enlevement', e.target.value)} /></Field>
-              <Field label="Adresse de livraison / arrivée"><Textarea value={f.adresse_livraison} onChange={e => set('adresse_livraison', e.target.value)} /></Field>
+              <AddressFields title="A · Enlèvement" value={origin} onChange={setOrigin}/>
+              <AddressFields title="B · Livraison" value={destination} onChange={setDestination}/>
               <div className="sm:col-span-2"><Field label="Objets"><Textarea value={f.objets} onChange={e => set('objets', e.target.value)} placeholder="ex. 3 caisses toiles 120×90, 1 sculpture bronze 80 kg, cf. liste jointe" /></Field></div>
               <Field label="Nombre de colis"><Input type="number" min={0} value={f.nb_colis} onChange={e => set('nb_colis', e.target.value)} /></Field>
               <Field label="Volume estimé (m³)"><Input type="number" min={0} step={0.5} value={f.volume_m3} onChange={e => set('volume_m3', e.target.value)} /></Field>
             </div>
           </Panel>
+          <RoutePlanner origin={origin} destination={destination} camions={fleet}/>
           <details className="rounded-xl border border-line bg-paper p-4">
             <summary className="font-medium text-sm">Ajuster les moyens et les opérations <span className="text-mute font-normal">· {f.nb_camions} camion(s), {f.nb_hommes} équipiers, {nbOps} opérations</span></summary>
             <div className="space-y-4 mt-4">

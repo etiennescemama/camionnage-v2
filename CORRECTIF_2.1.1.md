@@ -1,3 +1,5 @@
+> Document historique. Pour la version 2.2, lire DEMARRER_V2.2.md (migration SQL nécessaire).
+
 # Correctif 2.1.1 — notifications Realtime
 
 Erreur observée : `cannot add postgres_changes callbacks ... after subscribe()`.

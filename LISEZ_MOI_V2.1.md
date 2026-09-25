@@ -1,3 +1,5 @@
+> Document historique. Pour la version 2.2, lire DEMARRER_V2.2.md (migration SQL nécessaire).
+
 # Camionnage 2.1 — recherche, saisie et ouverture
 
 Version construite à partir de l’archive camionnage-v2.zip fournie. Le dossier racine reste `v2` pour faciliter le remplacement du projet existant.

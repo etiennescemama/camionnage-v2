@@ -11,7 +11,7 @@ type Col = { key: string; label: string; type?: 'text' | 'number' | 'bool' | 'se
 const TABS = ['camions', 'equipiers', 'temps_standards', 'scenarios', 'indisponibilites', 'clients'] as const;
 const LABELS: Record<typeof TABS[number], string> = { camions: 'Camions', equipiers: 'Équipiers', temps_standards: 'Temps standards', scenarios: 'Scénarios', indisponibilites: 'Indisponibilités', clients: 'Clients' };
 
-export function Referentiels(p: { camions: any[]; equipiers: any[]; ts: any[]; indispos: any[]; clients: any[]; scenarios: any[] }) {
+export function Referentiels(p: { utilisateurs:any[]; camions: any[]; equipiers: any[]; ts: any[]; indispos: any[]; clients: any[]; scenarios: any[] }) {
   const [tab, setTab] = useState<typeof TABS[number]>('camions');
   const camOpts = p.camions.map(c => ({ value: c.id, label: c.numero })), eqOpts = p.equipiers.map(e => ({ value: e.id, label: `${e.prenom} ${e.nom ?? ''}` }));
   return (
@@ -21,11 +21,13 @@ export function Referentiels(p: { camions: any[]; equipiers: any[]; ts: any[]; i
       <div className="flex flex-wrap gap-1.5 mb-4 text-sm">{TABS.map(t => <button key={t} onClick={() => setTab(t)} className={cn('rounded-full px-3 py-1', tab === t ? 'bg-ink text-white' : 'bg-paper border border-line hover:bg-fog')}>{LABELS[t]}</button>)}</div>
       {tab === 'camions' && <Table table="camions" rows={p.camions} pk="id" deleteMode="soft" cols={[
         { key: 'numero', label: 'N°', width: '110px' }, { key: 'immatriculation', label: 'Immat.', width: '120px' }, { key: 'volume_m3', label: 'm³', type: 'number', width: '80px' },
+        {key:'hauteur_cm',label:'Hauteur cm',type:'number'}, {key:'largeur_cm',label:'Largeur cm',type:'number'}, {key:'longueur_cm',label:'Longueur cm',type:'number'}, {key:'ptac_kg',label:'PTAC kg',type:'number'}, {key:'essieux',label:'Essieux',type:'number'},
         { key: 'hayon', label: 'Hayon', type: 'bool' }, { key: 'climatise', label: 'Clim', type: 'bool' }, { key: 'poids_lourd', label: 'PL', type: 'bool' }, { key: 'rampe', label: 'Rampe', type: 'bool' }, { key: 'actif', label: 'Actif', type: 'bool' }]}
         blank={{ numero: '', immatriculation: '', volume_m3: 20, hayon: true, climatise: false, poids_lourd: false, rampe: false, actif: true }} />}
       {tab === 'equipiers' && <Table table="equipiers" rows={p.equipiers} pk="id" deleteMode="soft" cols={[
         { key: 'prenom', label: 'Prénom' }, { key: 'nom', label: 'Nom' }, { key: 'permis', label: 'Permis', type: 'select', options: [{ value: '', label: '—' }, { value: 'B', label: 'B' }, { value: 'C', label: 'C (PL)' }, { value: 'CE', label: 'CE' }], width: '110px' },
         { key: 'role', label: 'Rôle', type: 'select', options: [{ value: 'chauffeur', label: 'Chauffeur' }, { value: 'manutentionnaire', label: 'Manutentionnaire' }, { value: 'emballeur', label: 'Emballeur' }, { value: 'chef_equipe', label: "Chef d'équipe" }], width: '150px' },
+        {key:'utilisateur_id',label:'Compte de connexion',type:'select',options:[{value:'',label:'Non rattaché'},...p.utilisateurs.map(u=>({value:u.id,label:`${u.prenom} ${u.nom}`}))]},
         { key: 'telephone', label: 'Téléphone', width: '130px' }, { key: 'actif', label: 'Actif', type: 'bool' }]}
         blank={{ prenom: '', nom: '', permis: 'B', role: 'chauffeur', telephone: '', actif: true }} />}
       {tab === 'temps_standards' && <Table table="temps_standards" rows={p.ts} pk="type_operation" deleteMode="none" cols={[
@@ -65,13 +67,13 @@ function Table({ table, rows, cols, pk, blank, deleteMode, hint }: { table: stri
     const { error } = deleteMode === 'soft' ? await supabase.from(table).update({ actif: false }).eq(pk, row[pk]) : await supabase.from(table).delete().eq(pk, row[pk]);
     if (error) setErr(error.message); else r.refresh();
   }
-  const Cell = ({ c }: { c: Col }) => {
+  const renderCell = (c:Col) => {
     const v = draft[c.key] ?? '';
     if (c.type === 'bool') return <input type="checkbox" checked={!!draft[c.key]} onChange={e => setDraft({ ...draft, [c.key]: e.target.checked })} />;
     if (c.type === 'select') return <Select className="h-8" value={v} onChange={e => setDraft({ ...draft, [c.key]: e.target.value })}>{c.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>;
     return <Input className="h-8" type={c.type === 'number' ? 'number' : c.type === 'date' ? 'date' : 'text'} value={v} onChange={e => setDraft({ ...draft, [c.key]: e.target.value })} />;
   };
-  const Row = () => <tr className="bg-cobalt-soft/40">{cols.map(c => <td key={c.key} className="px-2 py-1.5"><Cell c={c} /></td>)}<td className="px-2 py-1.5 text-right whitespace-nowrap"><button onClick={save} disabled={busy} className="p-1 text-moss"><Check className="h-4 w-4" /></button><button onClick={() => { setEdit(null); setCreating(false); }} className="p-1 text-mute"><X className="h-4 w-4" /></button></td></tr>;
+  const renderRow = (key?:string) => <tr key={key} className="bg-cobalt-soft/40">{cols.map(c => <td key={c.key} className="px-2 py-1.5">{renderCell(c)}</td>)}<td className="px-2 py-1.5 text-right whitespace-nowrap"><button onClick={save} disabled={busy} className="p-1 text-moss"><Check className="h-4 w-4" /></button><button onClick={() => { setEdit(null); setCreating(false); }} className="p-1 text-mute"><X className="h-4 w-4" /></button></td></tr>;
   return (
     <div className="rounded-lg border border-line bg-paper overflow-x-auto">
       <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-line"><span className="text-xs text-mute">{hint ?? `${rows.length} élément${rows.length > 1 ? 's' : ''}`}</span>{blank && !creating && <Button size="sm" onClick={() => { setDraft(blank); setCreating(true); setEdit(null); }}><Plus className="h-4 w-4" />Ajouter</Button>}</div>
@@ -79,8 +81,8 @@ function Table({ table, rows, cols, pk, blank, deleteMode, hint }: { table: stri
       <table className="w-full text-sm">
         <thead className="text-xs text-mute"><tr>{cols.map(c => <th key={c.key} className="text-left px-2 py-2 font-medium" style={{ width: c.width }}>{c.label}</th>)}<th /></tr></thead>
         <tbody className="divide-y divide-line">
-          {creating && <Row />}
-          {rows.map(row => edit === row[pk] ? <Row key={row[pk]} /> : (
+          {creating && renderRow('new')}
+          {rows.map(row => edit === row[pk] ? renderRow(row[pk]) : (
             <tr key={row[pk]} className={cn('hover:bg-fog/50', row.actif === false && 'opacity-50')}>
               {cols.map(c => <td key={c.key} className="px-2 py-2">{c.type === 'bool' ? (row[c.key] ? '✓' : '—') : c.type === 'select' ? (c.options?.find(o => o.value === (row[c.key] ?? ''))?.label ?? (row.camion?.numero ?? row.equipier?.prenom ?? '—')) : (row[c.key] ?? '—')}</td>)}
               <td className="px-2 py-2 text-right whitespace-nowrap"><button onClick={() => { setDraft({ ...row }); setEdit(row[pk]); setCreating(false); }} className="p-1 text-mute hover:text-ink"><Pencil className="h-4 w-4" /></button>{deleteMode !== 'none' && (row.actif !== false) && <button onClick={() => del(row)} className="p-1 text-mute hover:text-brick"><Trash2 className="h-4 w-4" /></button>}</td>

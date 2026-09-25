@@ -1,3 +1,5 @@
+> Document historique. Pour la version 2.2, lire DEMARRER_V2.2.md (migration SQL nécessaire).
+
 # Contrôles exécutés — 25 septembre 2026
 
 ## Résultats

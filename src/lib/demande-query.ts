@@ -17,7 +17,7 @@ export const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50), format: z.enum(['json','csv']).default('json'),
 }).refine(v => !v.from || !v.to || v.from <= v.to, { message: 'La date de fin doit suivre la date de début.' });
 export type DemandeQuery = z.infer<typeof querySchema>;
-export const LIST_SELECT = 'id,numero,code_affaire,client_id,date_souhaitee,creneau,rdv_heure,nb_camions,nb_hommes,nb_jours,type_camion,etat,coordinateur_id,client:clients(nom),coordinateur:utilisateurs!coordinateur_id(prenom,nom),operations(id,etat)';
+export const LIST_SELECT = 'id,numero,code_affaire,client_id,enlevement_rue,enlevement_code_postal,enlevement_ville,enlevement_pays,livraison_rue,livraison_code_postal,livraison_ville,livraison_pays,date_souhaitee,creneau,rdv_heure,nb_camions,nb_hommes,nb_jours,type_camion,etat,coordinateur_id,client:clients(nom),coordinateur:utilisateurs!coordinateur_id(prenom,nom),operations(id,etat)';
 export async function listDemandes(db: any, userId: string, p: DemandeQuery) {
   let query = db.from('demandes').select(LIST_SELECT, { count: 'exact' });
   const states = FILTERS.find(f => f.key === p.f)!.etats;

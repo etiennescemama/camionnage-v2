@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import {AddressFields} from '@/components/address-fields';
+import {addressFrom,addressColumns} from '@/lib/address';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Panel } from '@/components/panel';
@@ -9,10 +11,11 @@ import { TYPES_CAMION } from '@/lib/types';
 export function EditDemande({ demande }: { demande: any }) {
   const r = useRouter(); const [open, setOpen] = useState(false); const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
   const [f, setF] = useState({ date_souhaitee: demande.date_souhaitee ?? '', creneau: demande.creneau ?? 'matin', rdv_heure: demande.rdv_heure?.slice(0, 5) ?? '', date_fin: demande.date_fin ?? '', nb_hommes: demande.nb_hommes ?? 2, type_camion: demande.type_camion ?? '20', volume_m3: demande.volume_m3 ?? '', adresse_enlevement: demande.adresse_enlevement ?? '', adresse_livraison: demande.adresse_livraison ?? '', objets: demande.objets ?? '', observations: demande.observations ?? '', contact_nom: demande.contact_nom ?? '', contact_telephone: demande.contact_telephone ?? '', code_affaire: demande.code_affaire ?? '' });
+  const [origin,setOrigin]=useState(()=>addressFrom(demande,'enlevement')); const [destination,setDestination]=useState(()=>addressFrom(demande,'livraison'));
   const set = (k: string, v: any) => setF(p => ({ ...p, [k]: v }));
   async function save() {
     setBusy(true); setErr(null);
-    const { error } = await createClient().from('demandes').update({ ...f, rdv_heure: f.creneau === 'rdv' && f.rdv_heure ? f.rdv_heure + ':00' : null, date_fin: f.date_fin || null, volume_m3: f.volume_m3 === '' ? null : Number(f.volume_m3), nb_hommes: Number(f.nb_hommes) || 1 }).eq('id', demande.id);
+    const { error } = await createClient().from('demandes').update({ ...f, ...addressColumns(origin,'enlevement'), ...addressColumns(destination,'livraison'), rdv_heure: f.creneau === 'rdv' && f.rdv_heure ? f.rdv_heure + ':00' : null, date_fin: f.date_fin || null, volume_m3: f.volume_m3 === '' ? null : Number(f.volume_m3), nb_hommes: Number(f.nb_hommes) || 1 }).eq('id', demande.id);
     setBusy(false); if (error) { setErr(error.message); return; }
     setOpen(false); r.refresh();
   }
@@ -30,8 +33,9 @@ export function EditDemande({ demande }: { demande: any }) {
         <Field label="Contact"><Input value={f.contact_nom} onChange={e => set('contact_nom', e.target.value)} /></Field>
         <Field label="Téléphone"><Input value={f.contact_telephone} onChange={e => set('contact_telephone', e.target.value)} /></Field>
         <div className="sm:col-span-3 grid gap-3 sm:grid-cols-2">
-          <Field label="Adresse d'enlèvement"><Textarea value={f.adresse_enlevement} onChange={e => set('adresse_enlevement', e.target.value)} /></Field>
-          <Field label="Adresse de livraison"><Textarea value={f.adresse_livraison} onChange={e => set('adresse_livraison', e.target.value)} /></Field>
+          <AddressFields title="A · Enlèvement" value={origin} onChange={setOrigin}/>
+          <AddressFields title="B · Livraison" value={destination} onChange={setDestination}/>
+
         </div>
         <div className="sm:col-span-3"><Field label="Objets"><Textarea value={f.objets} onChange={e => set('objets', e.target.value)} /></Field></div>
         <div className="sm:col-span-3"><Field label="Observations"><Textarea value={f.observations} onChange={e => set('observations', e.target.value)} /></Field></div>

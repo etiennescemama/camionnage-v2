@@ -1,62 +1,21 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Textarea, Input } from '@/components/ui/input';
-import { EtatOp } from '@/components/ui/badge';
-import { fmtDate, fmtHeure, minToH } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, MapPin, Phone, LogOut, Navigation } from 'lucide-react';
-
-export function MobileOps({ ops, date, prev, next, isChauffeur, prenom, filtered }: { ops: any[]; date: string; prev: string; next: string; isChauffeur: boolean; prenom: string; filtered: boolean }) {
-  const r = useRouter();
-  return (
-    <div className="max-w-md mx-auto p-4 pb-24" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-      <div className="flex items-center justify-between mb-3">
-        <div><div className="text-lg font-semibold">Mes ordres</div><div className="text-xs text-mute">{prenom}{!filtered && ' · toutes les opérations (compte non lié à un équipier)'}</div></div>
-        {isChauffeur ? <button onClick={async () => { await createClient().auth.signOut(); r.push('/login'); }} className="text-mute"><LogOut className="h-5 w-5" /></button> : <Link href="/planning" className="text-xs text-cobalt">Planning</Link>}
-      </div>
-      <div className="flex items-center justify-between mb-4 rounded-md border border-line bg-paper px-2 py-1.5">
-        <Link href={`/mobile?date=${prev}`} className="p-2"><ChevronLeft className="h-5 w-5" /></Link>
-        <div className="font-medium capitalize">{fmtDate(date, { weekday: 'long', day: 'numeric', month: 'long' })}</div>
-        <Link href={`/mobile?date=${next}`} className="p-2"><ChevronRight className="h-5 w-5" /></Link>
-      </div>
-      {ops.length === 0 && <p className="rounded-lg border border-line bg-paper p-6 text-center text-sm text-mute">Aucun ordre ce jour.</p>}
-      <div className="space-y-3">{ops.map(o => <Ordre key={o.id} op={o} />)}</div>
-    </div>
-  );
+import {createClient} from '@/lib/supabase/client';
+import {fmtDate,fmtHeure,todayYmd} from '@/lib/utils';
+import {Textarea,Input,Field} from '@/components/ui/input';
+const TASK:Record<string,string>={enlevement:'Enlever et prendre en charge les œuvres',livraison:'Livrer les œuvres au destinataire',installation:'Installer les œuvres selon les consignes',emballage:'Emballer les œuvres prévues',reception_gm:'Réceptionner les œuvres au garde-meuble',sortie_gm:'Préparer et sortir les œuvres du stock',transfert:'Effectuer l’enlèvement puis la livraison',visite:'Effectuer la visite technique'};
+export function MobileOps({ops,date,prev,next,prenom,preview,equipiers,equipierId,linked,error}:any){
+ const r=useRouter();const href=(d:string)=>`/mobile?date=${d}${equipierId?'&equipier='+equipierId:''}`;
+ const active=ops.find((o:any)=>o.etat==='sur_site')??ops.find((o:any)=>o.etat==='en_route')??ops.find((o:any)=>o.etat==='planifiee');
+ const done=ops.filter((o:any)=>o.etat==='terminee'),later=ops.filter((o:any)=>o.id!==active?.id && o.etat!=='terminee');
+ return <div className="max-w-2xl mx-auto p-4 pb-24 space-y-5"><header className="flex justify-between items-center"><div><p className="text-sm text-mute">Bonjour {prenom}</p><h1 className="text-2xl font-semibold">Ma feuille de route</h1></div>{preview?<Link href="/planning" className="text-sm text-cobalt-ink">Planning</Link>:<button aria-label="Se déconnecter" onClick={async()=>{await createClient().auth.signOut();r.push('/login');r.refresh();}} className="text-sm text-mute">Déconnexion</button>}</header>{preview && <section className="p-4 rounded-xl bg-ochre-soft"><p className="font-medium">Aperçu chauffeur · lecture seule</p><select aria-label="Équipier à consulter" value={equipierId} onChange={e=>r.push(`/mobile?date=${date}&equipier=${e.target.value}`)} className="w-full p-3 mt-2 rounded-lg border border-line"><option value="">Choisir une personne</option>{equipiers.map((e:any)=><option key={e.id} value={e.id}>{e.prenom} {e.nom}</option>)}</select></section>}<nav className="flex items-center justify-between gap-2 bg-paper border border-line rounded-xl p-2"><Link aria-label="Jour précédent" href={href(prev)} className="p-3">←</Link><div className="text-center"><p className="font-medium capitalize">{fmtDate(date,{weekday:'long',day:'numeric',month:'long'})}</p><Link href={href(todayYmd())} className="text-xs text-cobalt-ink">Aujourd’hui</Link></div><Link aria-label="Jour suivant" href={href(next)} className="p-3">→</Link></nav>{error && <p role="alert" className="text-brick bg-brick-soft p-4 rounded-xl">{error}</p>}{!linked?<section className="p-6 rounded-xl bg-paper border border-line"><h2 className="font-semibold">{preview?'Choisissez un équipier':'Votre compte doit être rattaché à un équipier'}</h2><p className="text-sm text-mute mt-2">{preview?'Vous verrez uniquement les missions affectées à cette personne.':'Contactez le responsable planning : aucune mission ne peut être affichée avant ce rattachement.'}</p></section>:<><div className="flex justify-between text-sm"><span>{ops.length} mission(s) aujourd’hui</span><span>{done.length} terminée(s)</span></div>{active?<section><p className="text-xs uppercase tracking-widest text-cobalt-ink mb-2">{['en_route','sur_site'].includes(active.etat)?'Mission en cours':'Votre prochaine mission'}</p><Mission key={`${active.id}-${active.etat}`} op={active} primary canAct={!preview && date<=todayYmd()}/></section>:<div className="bg-moss-soft rounded-xl p-6"><h2 className="font-semibold">{done.length?'Journée terminée':'Aucune mission affectée'}</h2><p className="text-sm mt-2">{done.length?'Toutes vos missions de cette date sont clôturées.':'Le planning vous transmettra vos missions une fois les affectations confirmées.'}</p></div>}{later.length>0 && <section className="space-y-3"><h2 className="font-semibold">Ensuite · {later.length} mission(s)</h2>{later.map((o:any)=><Mission key={o.id} op={o} canAct={false}/>)}</section>}{done.length>0 && <details><summary className="font-semibold py-2">Terminées · {done.length}</summary><div className="space-y-3">{done.map((o:any)=><Mission key={o.id} op={o} canAct={false}/>)}</div></details>}</>}</div>;
 }
-
-function Ordre({ op }: { op: any }) {
-  const r = useRouter(); const [busy, setBusy] = useState(false); const [cr, setCr] = useState(op.compte_rendu ?? ''); const [sig, setSig] = useState(op.signature_nom ?? ''); const [open, setOpen] = useState(op.etat !== 'terminee');
-  async function patch(body: any) { setBusy(true); await fetch(`/api/operations/${op.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); setBusy(false); r.refresh(); }
-  const now = () => new Date().toISOString();
-  const adr = op.adresse ?? '';
-  return (
-    <div className="rounded-lg border border-line bg-paper overflow-x-auto">
-      <button onClick={() => setOpen(!open)} className="w-full text-left p-4">
-        <div className="flex items-center justify-between gap-2"><div className="text-2xl font-semibold">{fmtHeure(op.heure_debut)}</div><EtatOp etat={op.etat} /></div>
-        <div className="font-medium mt-1">{op.demande.client?.nom ?? '—'}</div>
-        <div className="text-sm text-mute">{op.libelle} · {minToH(op.duree_min ?? 120)} · {op.camion?.numero ?? '—'}</div>
-      </button>
-      {open && <div className="border-t border-line p-4 space-y-3 text-sm">
-        {adr && <div className="flex gap-2"><MapPin className="h-4 w-4 shrink-0 mt-0.5 text-mute" /><div className="flex-1 whitespace-pre-line">{adr}</div><a href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(adr)}`} target="_blank" rel="noreferrer" className="h-9 w-9 shrink-0 grid place-items-center rounded-md bg-cobalt-soft text-cobalt-ink"><Navigation className="h-4 w-4" /></a></div>}
-        {(op.demande.contact_nom || op.demande.contact_telephone) && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-mute" /><span>{op.demande.contact_nom}</span>{op.demande.contact_telephone && <a href={`tel:${op.demande.contact_telephone}`} className="text-cobalt underline">{op.demande.contact_telephone}</a>}</div>}
-        {op.demande.objets && <div><div className="text-xs text-mute">Objets{op.demande.nb_colis ? ` · ${op.demande.nb_colis} colis` : ''}</div><div className="whitespace-pre-line">{op.demande.objets}</div></div>}
-        {(op.consignes || op.demande.observations) && <div className="rounded-md bg-ochre-soft p-2.5 whitespace-pre-line"><div className="text-xs text-ochre mb-0.5">Consignes</div>{op.consignes}{op.consignes && op.demande.observations ? '\n' : ''}{op.demande.observations}</div>}
-        {op.equipiers?.length > 0 && <div className="text-xs text-mute">Équipe : {op.equipiers.map((e: any) => `${e.equipier?.prenom}${e.chef ? ' (chef)' : ''}`).join(', ')}</div>}
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          {op.etat === 'planifiee' && <Button className="col-span-2 h-12" onClick={() => patch({ etat: 'en_route' })} disabled={busy}>Je pars</Button>}
-          {op.etat === 'en_route' && <Button className="col-span-2 h-12" onClick={() => patch({ etat: 'sur_site', heure_arrivee: now() })} disabled={busy}>Arrivé sur site</Button>}
-          {op.etat === 'sur_site' && <>
-            <Input placeholder="Nom du signataire" value={sig} onChange={e => setSig(e.target.value)} className="col-span-2" />
-            <Textarea placeholder="Compte rendu, réserves, incident…" value={cr} onChange={e => setCr(e.target.value)} className="col-span-2" />
-            <Button variant="success" className="col-span-2 h-12" onClick={() => patch({ etat: 'terminee', heure_depart: now(), compte_rendu: cr || null, signature_nom: sig || null })} disabled={busy}>Terminé, je repars</Button>
-          </>}
-          {op.etat === 'terminee' && <div className="col-span-2 text-xs text-moss">Arrivée {op.heure_arrivee ? new Date(op.heure_arrivee).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—'} · Départ {op.heure_depart ? new Date(op.heure_depart).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '—'}{op.signature_nom ? ` · signé ${op.signature_nom}` : ''}</div>}
-        </div>
-      </div>}
-    </div>
-  );
+function Mission({op,primary=false,canAct}:{op:any;primary?:boolean;canAct:boolean}){
+ const r=useRouter();const [busy,setBusy]=useState(false),[error,setError]=useState(''),[cr,setCr]=useState(op.compte_rendu??''),[sig,setSig]=useState(op.signature_nom??'');
+ async function advance(){if(busy)return;setBusy(true);setError('');const state=({planifiee:'en_route',en_route:'sur_site',sur_site:'terminee'} as Record<string,string>)[op.etat];try{const res=await fetch(`/api/operations/${op.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({etat:state,...(state==='terminee'?{compte_rendu:cr||null,signature_nom:sig||null}:{})})});const j=await res.json();if(!res.ok)throw new Error(j.error);r.refresh();}catch(e){setError(e instanceof Error?e.message:'Impossible d’enregistrer. Réessayez.');}finally{setBusy(false);}}
+ const action=({planifiee:'Démarrer le déplacement',en_route:op.type_operation==='transfert'?'Je suis arrivé au premier site':'Je suis arrivé sur place',sur_site:'Terminer cette mission'} as Record<string,string>)[op.etat];
+ const state=({planifiee:'À faire',en_route:'En déplacement',sur_site:'Sur place',terminee:'Terminée'} as Record<string,string>)[op.etat];
+ return <article className={`rounded-2xl border bg-paper overflow-hidden ${primary?'border-cobalt shadow-sm':'border-line'}`}><header className="p-4 bg-fog/50"><div className="flex justify-between"><strong className="text-xl">{fmtHeure(op.heure_debut)}</strong><span className="text-sm rounded-full bg-paper px-3 py-1">{state}</span></div><h2 className="text-lg font-semibold mt-2">{op.demande?.client?.nom??'Client à préciser'}</h2><p className="text-sm text-mute">{op.demande?.numero} · camion {op.camion?.numero??'non requis / à confirmer'} {op.camion?.immatriculation}</p></header><div className="p-4 space-y-4"><section><h3 className="text-xs uppercase text-mute mb-1">Où aller</h3><p className="font-medium whitespace-pre-line">{op.adresse||'Adresse manquante : contactez le planning avant de partir.'}</p>{op.adresse && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(op.adresse)}`} target="_blank" rel="noreferrer" className="inline-block border border-line rounded-lg px-3 py-2 text-sm mt-2">Ouvrir le lieu sur la carte ↗</a>}{op.camion?.poids_lourd && <p className="text-xs text-ochre mt-1">Le lien localise l’adresse. Utilisez votre navigation PL pour le trajet.</p>}</section><section><h3 className="text-xs uppercase text-mute mb-1">Ce que je dois faire</h3><p className="font-semibold">{TASK[op.type_operation]??op.libelle}</p>{op.type_operation==='transfert' && <p className="text-sm mt-2">Départ : {op.demande.adresse_enlevement}<br/>Arrivée : {op.demande.adresse_livraison}<br/>Clôturer la mission uniquement après la livraison.</p>}<p className="text-sm whitespace-pre-line mt-2">{op.demande?.objets||'Objets non précisés : vérifier avec le planning.'}</p>{op.demande?.nb_colis!=null && <p className="text-sm">{op.demande.nb_colis} colis prévus</p>}</section>{(op.consignes||op.demande?.observations) && <section className="bg-ochre-soft p-3 rounded-lg"><h3 className="font-semibold text-sm mb-1">Consignes à suivre</h3><p className="whitespace-pre-line text-sm">{[op.consignes,op.demande?.observations].filter(Boolean).join('\n')}</p></section>}<details open={primary?true:undefined}><summary className="text-sm font-medium">Contact et équipe</summary><p className="text-sm mt-2">{op.demande?.contact_nom||'Contact non renseigné'}</p>{op.demande?.contact_telephone && <a className="inline-block text-cobalt-ink py-2" href={`tel:${op.demande.contact_telephone}`}>Appeler · {op.demande.contact_telephone}</a>}<p className="text-sm text-mute">Équipe : {op.equipiers?.map((e:any)=>`${e.equipier?.prenom??''}${e.chef?' (chef)':''}`).join(', ')||'à préciser'}</p></details>{op.etat==='sur_site' && canAct && <><Field label="Nom de la personne ayant réceptionné (facultatif)"><Input value={sig} onChange={e=>setSig(e.target.value)}/></Field><Field label="Compte rendu / réserves / incident"><Textarea value={cr} onChange={e=>setCr(e.target.value)} placeholder="Indiquez ce qui a été fait et toute difficulté rencontrée."/></Field><p className="text-xs text-mute">Le nom saisi ne remplace pas une signature électronique.</p></>}{op.etat==='terminee' && <p className="text-sm whitespace-pre-line">{op.compte_rendu||'Mission clôturée.'}</p>}{error && <p role="alert" className="bg-brick-soft text-brick rounded-lg p-3 text-sm">{error}</p>}{primary && action && (canAct?<button onClick={advance} disabled={busy || !op.adresse} className="w-full bg-cobalt text-white rounded-xl px-4 py-4 font-semibold disabled:opacity-40">{busy?'Enregistrement…':action}</button>:<p className="text-sm text-mute">Action disponible pour l’équipier connecté. Les missions futures sont en lecture seule.</p>)}</div></article>;
 }

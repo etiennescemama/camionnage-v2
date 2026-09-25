@@ -8,6 +8,8 @@ import { CRENEAU_LABEL } from '@/lib/types';
 import { ArrowLeft, MapPin, Phone, Mail } from 'lucide-react';
 import { DemandeActions } from './actions';
 import { OperationCard } from './operation-card';
+import {RoutePlanner} from '@/components/route-planner';
+import {addressFrom} from '@/lib/address';
 import { EditDemande } from './edit';
 
 export default async function DemandePage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +35,7 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
       </div>
       <div className="mb-5 flex gap-3"><Link href={`/demandes/${id}/document`} className="rounded-lg border border-line bg-paper px-4 py-2 text-sm hover:bg-fog">Fiche de mission · PDF / impression</Link></div>
       {d.etat === 'refusee' && d.motif_refus && <div className="mb-4 rounded-md border border-brick/30 bg-brick-soft p-3 text-sm text-brick"><strong>Refusée :</strong> {d.motif_refus}</div>}
+      <div className="mb-5">{(isOwner || isDispatch) && !['terminee','annulee'].includes(d.etat) && <a href="#modifier-adresses" className="inline-block text-sm text-cobalt-ink underline mb-3">Compléter ou localiser les adresses →</a>}<RoutePlanner origin={addressFrom(d,'enlevement')} destination={addressFrom(d,'livraison')} camions={camions ?? []} initialIds={Array.from(new Set((ops ?? []).map((o:any)=>o.camion_id).filter(Boolean))) as string[]}/></div>
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4">
           <Panel title={`Opérations (${(ops ?? []).length})`}>
@@ -40,13 +43,13 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
               {Array.from(new Set((ops ?? []).map((o: any) => o.date_prevue ?? 'sans date'))).map((dt: any) => (
                 <div key={dt} className="space-y-2">
                   {(ops ?? []).length > 1 && <div className="text-xs font-medium text-mute pt-1 capitalize">{dt === 'sans date' ? 'Sans date' : fmtDate(dt, { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
-                  {(ops ?? []).filter((o: any) => (o.date_prevue ?? 'sans date') === dt).map((o: any) => <OperationCard key={o.id} op={o} camions={camions ?? []} equipiers={equipiers ?? []} canPlan={isDispatch && !['refusee', 'annulee', 'envoyee'].includes(d.etat)} demandeNbHommes={d.nb_hommes} />)}
+                  {(ops ?? []).filter((o: any) => (o.date_prevue ?? 'sans date') === dt).map((o: any) => <OperationCard key={o.id} op={{...o,demande:d}} camions={camions ?? []} equipiers={equipiers ?? []} canPlan={isDispatch && !['refusee', 'annulee', 'envoyee'].includes(d.etat)} demandeNbHommes={d.nb_hommes} />)}
                 </div>))}
               {(ops ?? []).length === 0 && <p className="text-sm text-mute">Aucune opération.</p>}
               {d.etat === 'envoyee' && isDispatch && <p className="text-xs text-mute">Acceptez la demande pour pouvoir la planifier.</p>}
             </div>
           </Panel>
-          {(isOwner || isDispatch) && !['terminee', 'annulee'].includes(d.etat) && <EditDemande demande={d} />}
+          {(isOwner || isDispatch) && !['terminee', 'annulee'].includes(d.etat) && <div id="modifier-adresses" className="scroll-mt-20"><EditDemande demande={d} /></div>}
         </div>
         <div className="space-y-4">
           <Panel title="Quand">
