@@ -31,6 +31,7 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
         </div>
         <DemandeActions id={d.id} numero={d.numero} etat={d.etat} isDispatch={isDispatch} isOwner={isOwner} />
       </div>
+      <div className="mb-5 flex gap-3"><Link href={`/demandes/${id}/document`} className="rounded-lg border border-line bg-paper px-4 py-2 text-sm hover:bg-fog">Fiche de mission · PDF / impression</Link></div>
       {d.etat === 'refusee' && d.motif_refus && <div className="mb-4 rounded-md border border-brick/30 bg-brick-soft p-3 text-sm text-brick"><strong>Refusée :</strong> {d.motif_refus}</div>}
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4">

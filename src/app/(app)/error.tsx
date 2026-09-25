@@ -1,0 +1,2 @@
+'use client';
+export default function ErrorPage({ reset }: { reset: () => void }) { return <div role="alert" className="p-8"><h1 className="font-semibold text-xl">Cette page n’a pas pu être chargée.</h1><p className="text-mute mt-2">Votre connexion ou le service peut être momentanément indisponible.</p><button onClick={reset} className="bg-ink text-white px-4 py-2 mt-4 rounded-lg">Réessayer</button></div>; }

@@ -11,3 +11,12 @@ body { @apply bg-fog text-ink font-sans antialiased; }
 
 .app-main{padding-top:calc(48px + env(safe-area-inset-top,0px));padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
 @media (min-width:768px){.app-main{padding-top:0;padding-bottom:0}}
+:focus-visible { outline: 2px solid #2743c6; outline-offset: 3px; }
+summary { cursor: pointer; }
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body, .app-main { background: white !important; padding: 0 !important; }
+  aside, .no-print, body > div > header, body > div > nav { display: none !important; }
+  .mission-sheet { border: 0; padding: 0 !important; border-radius: 0; }
+  .mission-operation { break-inside: avoid; }
+}

@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return new NextResponse(`Configuration manquante sur Vercel :\n- NEXT_PUBLIC_SUPABASE_URL ${url ? 'OK' : 'MANQUANT'}\n- NEXT_PUBLIC_SUPABASE_ANON_KEY ${key ? 'OK' : 'MANQUANT'}\nAjoutez-les dans Settings → Environment Variables puis redéployez.`, { status: 500, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+  // Versioned routes authenticate their own cookie or Bearer token and return JSON errors.
+  if (request.nextUrl.pathname.startsWith('/api/v1/')) return NextResponse.next();
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, { cookies: {
     getAll() { return request.cookies.getAll(); },

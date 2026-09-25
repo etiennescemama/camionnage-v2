@@ -1,0 +1,1 @@
+export default function Loading() { return <div role="status" className="p-8 max-w-7xl mx-auto"><p className="text-sm text-mute mb-5">Chargement…</p><div className="animate-pulse space-y-4"><div className="h-12 w-2/3 bg-line rounded-lg"/><div className="h-24 bg-line rounded-xl"/><div className="h-64 bg-line rounded-xl"/></div></div>; }

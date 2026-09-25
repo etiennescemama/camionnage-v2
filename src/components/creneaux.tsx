@@ -6,13 +6,23 @@ export type Creneau = { jour: string; demi: 'matin' | 'apres_midi'; camions_libr
 
 export function useCreneaux(from: string, to: string, volume: number, hayon: boolean, clim: boolean, duree: number) {
   const [data, setData] = useState<Creneau[]>([]); const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    if (!from || !to) return; let alive = true; setLoading(true);
-    fetch(`/api/creneaux?from=${from}&to=${to}&volume=${volume}&hayon=${hayon ? 1 : 0}&clim=${clim ? 1 : 0}&duree=${duree}`)
-      .then(r => r.json()).then(j => { if (alive) setData(j.creneaux ?? []); }).finally(() => alive && setLoading(false));
-    return () => { alive = false; };
+    setData([]); setError(null);
+    if (!from || !to || from.includes('NaN') || to.includes('NaN')) { setLoading(false); return; }
+    let alive = true; const controller = new AbortController(); setLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/creneaux?from=${from}&to=${to}&volume=${volume}&hayon=${hayon ? 1 : 0}&clim=${clim ? 1 : 0}&duree=${duree}`, { signal: controller.signal });
+        if (!response.ok) throw new Error('Disponibilités indisponibles. Réessayez en changeant la date.');
+        const result = await response.json();
+        if (alive) setData(result.creneaux ?? []);
+      } catch (e) { if (alive && !controller.signal.aborted) setError(e instanceof Error ? e.message : 'Disponibilités indisponibles.'); }
+      finally { if (alive) setLoading(false); }
+    }, 300);
+    return () => { alive = false; clearTimeout(timer); controller.abort(); };
   }, [from, to, volume, hayon, clim, duree]);
-  return { data, loading };
+  return { data, loading, error };
 }
 
 function tone(c: number, need: number) {

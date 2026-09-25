@@ -4,7 +4,7 @@ export const cn = (...i: ClassValue[]) => twMerge(clsx(i));
 export function ymd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
-export function addDays(s: string, n: number) { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return ymd(d); }
+export function addDays(s: string, n: number) { const d = new Date(s + 'T12:00:00'); if (Number.isNaN(d.getTime())) return ''; d.setDate(d.getDate() + n); return ymd(d); }
 export function mondayOf(s: string) { const d = new Date(s + 'T12:00:00'); const dow = d.getDay(); return addDays(s, dow === 0 ? -6 : 1 - dow); }
 export function fmtDate(s?: string | null, opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }) {
   if (!s) return '—'; return new Date(s + 'T12:00:00').toLocaleDateString('fr-FR', opts);

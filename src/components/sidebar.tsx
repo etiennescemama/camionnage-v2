@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { CalendarRange, Inbox, ListTodo, Settings2, Users, LogOut, Smartphone } from 'lucide-react';
+import { CalendarRange, Inbox, ListTodo, Settings2, Users, LogOut, Smartphone, FileOutput } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { Utilisateur } from '@/lib/types';
 import { ROLE_LABEL } from '@/lib/types';
@@ -11,6 +11,7 @@ const NAV = [
   { href: '/programme', label: 'Mon programme', icon: ListTodo, roles: ['coordinateur','dispatcheur','gm','emballage','direction','admin'] },
   { href: '/demandes', label: 'Demandes', icon: Inbox, roles: ['coordinateur','dispatcheur','gm','emballage','direction','admin'] },
   { href: '/planning', label: 'Planning', icon: CalendarRange, roles: ['coordinateur','dispatcheur','gm','emballage','direction','admin'] },
+  { href: '/integrations', label: 'Exports & API', icon: FileOutput, roles: ['coordinateur','dispatcheur','gm','emballage','direction','admin'] },
   { href: '/mobile', label: 'Vue chauffeur', icon: Smartphone, roles: ['dispatcheur','admin'] },
   { href: '/admin/referentiels', label: 'Référentiels', icon: Settings2, roles: ['dispatcheur','admin'] },
   { href: '/admin/utilisateurs', label: 'Utilisateurs', icon: Users, roles: ['admin'] },
@@ -19,11 +20,11 @@ export function MobileBars({ user }: { user: Utilisateur }) {
   const path = usePathname(); const r = useRouter();
   const items = NAV.filter(n => n.roles.includes(user.role) && !n.href.startsWith('/admin/utilisateurs')).slice(0, 5);
   return (<>
-    <header className="md:hidden fixed top-0 inset-x-0 z-30 h-12 bg-paper border-b border-line flex items-center justify-between px-3" style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(48px + env(safe-area-inset-top))' }}>
+    <header className="no-print md:hidden fixed top-0 inset-x-0 z-30 h-12 bg-paper border-b border-line flex items-center justify-between px-3" style={{ paddingTop: 'env(safe-area-inset-top)', height: 'calc(48px + env(safe-area-inset-top))' }}>
       <span className="font-semibold">Camionnage</span>
-      <div className="flex items-center gap-1"><Bell userId={user.id} /><button onClick={async () => { await createClient().auth.signOut(); r.push('/login'); r.refresh(); }} className="h-8 w-8 grid place-items-center text-mute" aria-label="Se déconnecter"><LogOut className="h-4 w-4" /></button></div>
+      <div className="flex items-center gap-1"><Bell /><button onClick={async () => { await createClient().auth.signOut(); r.push('/login'); r.refresh(); }} className="h-8 w-8 grid place-items-center text-mute" aria-label="Se déconnecter"><LogOut className="h-4 w-4" /></button></div>
     </header>
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-paper border-t border-line grid" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)`, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="no-print md:hidden fixed bottom-0 inset-x-0 z-30 bg-paper border-t border-line grid" style={{ gridTemplateColumns: `repeat(${items.length}, 1fr)`, paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {items.map(n => { const active = path === n.href || path.startsWith(n.href + '/'); return (
         <Link key={n.href} href={n.href} className={cn('flex flex-col items-center gap-0.5 py-2 text-[10px]', active ? 'text-cobalt-ink' : 'text-mute')}><n.icon className="h-5 w-5" />{n.label.replace('Mon programme', 'Programme').replace('Vue chauffeur', 'Chauffeur').replace('Référentiels', 'Réf.')}</Link>); })}
     </nav>
@@ -36,7 +37,7 @@ export function Sidebar({ user }: { user: Utilisateur }) {
     <aside className="hidden md:flex w-56 shrink-0 border-r border-line bg-paper flex-col">
       <div className="h-14 px-4 flex items-center justify-between border-b border-line">
         <span className="font-semibold">Camionnage</span>
-        <Bell userId={user.id} />
+        <Bell />
       </div>
       <nav className="p-2 flex-1 space-y-0.5">
         {NAV.filter(n => n.roles.includes(user.role)).map(n => {
