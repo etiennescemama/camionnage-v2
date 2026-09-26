@@ -1,14 +1,19 @@
 {
   "name": "camionnage-v2",
-  "version": "2.2.0",
+  "version": "2.10.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test tests/core.cjs",
+    "test": "node --test tests/core.cjs tests/auto-planning.cjs tests/sms.cjs",
     "typecheck": "tsc --noEmit",
-    "test:db": "node tests/planning-db.cjs"
+    "test:db": "node tests/planning-db.cjs",
+    "test:alerts": "node tests/alerts-db.cjs",
+    "test:securite": "node tests/security-db.cjs",
+    "test:photos": "node tests/photos-db.cjs",
+    "test:sms": "node tests/sms-db.cjs",
+    "audit:v27": "MODE=avant node tests/security-db.cjs"
   },
   "dependencies": {
     "@here/flexpolyline": "^0.1.0",

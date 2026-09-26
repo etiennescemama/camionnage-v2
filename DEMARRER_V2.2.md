@@ -1,3 +1,5 @@
+> Correctif 2.2.1 : lire CORRECTIF_V2.2.1.md. Les profils incomplets ne bloquent plus le calcul ; ils produisent une estimation signalée sans péage.
+
 # Camionnage 2.2 — adresses, planning et feuille de route
 
 Cette version conserve les exports, l’API de lecture et le correctif de notifications de la 2.1.1.

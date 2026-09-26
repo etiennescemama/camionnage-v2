@@ -4,14 +4,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        fog: '#EEF0EE', paper: '#FFFFFF', ink: '#1F2A37', mute: '#6B7280', line: '#D9DDD9',
-        cobalt: { DEFAULT: '#2743C6', soft: '#E3E8FA', ink: '#1B2E8A' },
-        ochre: { DEFAULT: '#C48A1E', soft: '#FBF1DC' },
-        moss: { DEFAULT: '#3F7A4A', soft: '#DFEBDD' },
-        brick: { DEFAULT: '#B4463A', soft: '#F6DCD8' },
+        fog: '#F5F5F3', paper: '#FFFFFF', ink: '#191B1D', mute: '#62666B', line: '#E1E2DF',
+        cobalt: { DEFAULT: '#242A30', soft: '#EBEEF0', ink: '#242A30' },
+        ochre: { DEFAULT: '#886015', soft: '#F7F2E7' },
+        moss: { DEFAULT: '#32664D', soft: '#ECF3EE' },
+        brick: { DEFAULT: '#A63732', soft: '#FAEDEC' },
       },
-      fontFamily: { sans: ['"IBM Plex Sans"', 'system-ui', 'sans-serif'] },
-      borderRadius: { md: '6px', lg: '10px' },
+      fontFamily: { sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'sans-serif'] },
+      borderRadius: { md: '6px', lg: '8px', xl: '10px', '2xl': '12px' },
     },
   },
   plugins: [],
