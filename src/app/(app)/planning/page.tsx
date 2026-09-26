@@ -3,7 +3,7 @@ import { currentUser } from '@/lib/auth';
 import { addDays, mondayOf, todayYmd } from '@/lib/utils';
 import { PlanningWorkspace } from './workspace';
 
-export default async function Planning({ searchParams }: { searchParams: Promise<{ date?: string; vue?: string }> }) {
+export default async function Planning({ searchParams }: { searchParams: Promise<{ date?: string; vue?: string; demande?: string }> }) {
   const sp = await searchParams;
   const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) && !Number.isNaN(Date.parse(sp.date)) ? sp.date : todayYmd();
   const vue = (['jour','semaine','mois'].includes(sp.vue??'') ? sp.vue : 'jour') as 'jour' | 'semaine' | 'mois';
@@ -19,12 +19,12 @@ export default async function Planning({ searchParams }: { searchParams: Promise
     supabase.from('operations').select('*, demande:demandes!inner(*, client:clients(nom)), equipiers:operation_equipiers(equipier_id, equipier:equipiers(prenom))').gte('date_prevue', from).lte('date_prevue', to).neq('etat', 'annulee').not('demande.etat', 'in', '("refusee","annulee")'),
     supabase.from('operations').select('*, demande:demandes!inner(*, client:clients(nom)),equipiers:operation_equipiers(equipier_id)').eq('etat', 'a_planifier').in('demande.etat', ['acceptee', 'planifiee', 'en_cours']).order('date_prevue'),
     supabase.from('indisponibilites').select('*').lte('date_debut', to).gte('date_fin', from),
-    supabase.rpc('creneaux_disponibles', { p_from: from, p_to: to, p_volume_min: 0, p_hayon: false, p_clim: false, p_duree_min: 120 }),
+    Promise.resolve({data:[]}),
     supabase.from('equipiers').select('*').eq('actif', true),
   ]);
 
   return (
-    <PlanningWorkspace
+    <PlanningWorkspace initialDemande={sp.demande}
       date={date} vue={vue} from={from} to={to}
       camions={camions ?? []} ops={ops ?? []} aPlanifier={aPlanifier ?? []} indispos={indispos ?? []} capacite={capacite ?? []}
       equipiers={equipiers ?? []}

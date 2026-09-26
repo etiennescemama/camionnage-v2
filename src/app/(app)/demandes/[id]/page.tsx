@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {DemandeProgress,FieldReports} from '@/components/demande-progress';
 import { createClient } from '@/lib/supabase/server';
 import { currentUser } from '@/lib/auth';
 import { Panel } from '@/components/panel';
@@ -8,7 +9,7 @@ import { CRENEAU_LABEL } from '@/lib/types';
 import { ArrowLeft, MapPin, Phone, Mail } from 'lucide-react';
 import { DemandeActions } from './actions';
 import { OperationCard } from './operation-card';
-import {RoutePlanner} from '@/components/route-planner';
+import {LazyRoutePlanner} from '@/components/lazy-route-planner';
 import {addressFrom} from '@/lib/address';
 import { EditDemande } from './edit';
 
@@ -16,8 +17,8 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
   const { id } = await params; const me = await currentUser(); const supabase = await createClient();
   const { data: d, error } = await supabase.from('demandes').select('*, client:clients(*), coordinateur:utilisateurs!coordinateur_id(prenom, nom), dispatcheur:utilisateurs!dispatcheur_id(prenom, nom)').eq('id', id).single();
   if (error || !d) return <div className="p-6"><Link href="/demandes" className="text-sm text-mute">← Demandes</Link><p className="mt-4 rounded-md bg-brick-soft text-brick p-4 text-sm">Demande introuvable{error ? ` : ${error.message}` : ''}.</p></div>;
-  const [{ data: ops }, { data: camions }, { data: equipiers }] = await Promise.all([
-    supabase.from('operations').select('*, camion:camions(*), equipiers:operation_equipiers(equipier_id, chef, equipier:equipiers(*))').eq('demande_id', id).order('date_prevue').order('ordre'),
+  const [{ data: ops, error: opsError }, { data: camions }, { data: equipiers }] = await Promise.all([
+    supabase.from('operations').select('*, camion:camions(*), equipiers:operation_equipiers(equipier_id, chef, equipier:equipiers(*)), photos:operation_photos(id,storage_path,categorie,legende,created_at,auteur_id)').eq('demande_id', id).order('date_prevue').order('ordre'),
     supabase.from('camions').select('*').eq('actif', true).order('numero'),
     supabase.from('equipiers').select('*').eq('actif', true).order('prenom'),
   ]);
@@ -33,9 +34,9 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
         </div>
         <DemandeActions id={d.id} numero={d.numero} etat={d.etat} isDispatch={isDispatch} isOwner={isOwner} />
       </div>
-      <div className="mb-5 flex gap-3"><Link href={`/demandes/${id}/document`} className="rounded-lg border border-line bg-paper px-4 py-2 text-sm hover:bg-fog">Fiche de mission · PDF / impression</Link></div>
+      {opsError?<p role="alert" className="text-brick mb-4">Impossible de charger les opérations. Actualisez pour connaître l’avancement.</p>:<DemandeProgress demande={d} operations={ops??[]} canPlan={isDispatch}/>}<div className="mb-5 flex gap-3 flex-wrap">{me && ['coordinateur','dispatcheur','admin'].includes(me.role)&&<Link href={`/demandes/nouvelle?reprendre=${id}`} className="rounded-lg bg-ink text-white px-4 py-2 text-sm">Reprendre pour une nouvelle demande →</Link>}<Link href={`/demandes/${id}/document`} className="rounded-lg border border-line bg-paper px-4 py-2 text-sm hover:bg-fog">Fiche de mission · PDF / impression</Link></div>
       {d.etat === 'refusee' && d.motif_refus && <div className="mb-4 rounded-md border border-brick/30 bg-brick-soft p-3 text-sm text-brick"><strong>Refusée :</strong> {d.motif_refus}</div>}
-      <div className="mb-5">{(isOwner || isDispatch) && !['terminee','annulee'].includes(d.etat) && <a href="#modifier-adresses" className="inline-block text-sm text-cobalt-ink underline mb-3">Compléter ou localiser les adresses →</a>}<RoutePlanner origin={addressFrom(d,'enlevement')} destination={addressFrom(d,'livraison')} camions={camions ?? []} initialIds={Array.from(new Set((ops ?? []).map((o:any)=>o.camion_id).filter(Boolean))) as string[]}/></div>
+      <div className="mb-5">{(isOwner || isDispatch) && !['terminee','annulee'].includes(d.etat) && <a href="#modifier-adresses" className="inline-block text-sm text-cobalt-ink underline mb-3">Compléter ou localiser les adresses →</a>}<LazyRoutePlanner origin={addressFrom(d,'enlevement')} destination={addressFrom(d,'livraison')} camions={camions ?? []} initialIds={Array.from(new Set((ops ?? []).map((o:any)=>o.camion_id).filter(Boolean))) as string[]}/></div>
       <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
         <div className="space-y-4">
           <Panel title={`Opérations (${(ops ?? []).length})`}>
@@ -43,12 +44,13 @@ export default async function DemandePage({ params }: { params: Promise<{ id: st
               {Array.from(new Set((ops ?? []).map((o: any) => o.date_prevue ?? 'sans date'))).map((dt: any) => (
                 <div key={dt} className="space-y-2">
                   {(ops ?? []).length > 1 && <div className="text-xs font-medium text-mute pt-1 capitalize">{dt === 'sans date' ? 'Sans date' : fmtDate(dt, { weekday: 'long', day: 'numeric', month: 'long' })}</div>}
-                  {(ops ?? []).filter((o: any) => (o.date_prevue ?? 'sans date') === dt).map((o: any) => <OperationCard key={o.id} op={{...o,demande:d}} camions={camions ?? []} equipiers={equipiers ?? []} canPlan={isDispatch && !['refusee', 'annulee', 'envoyee'].includes(d.etat)} demandeNbHommes={d.nb_hommes} />)}
+                  {(ops ?? []).filter((o: any) => (o.date_prevue ?? 'sans date') === dt).map((o: any) => <OperationCard key={o.id} op={{...o,demande:d}} camions={camions ?? []} equipiers={equipiers ?? []} canPlan={isDispatch && !['refusee', 'annulee', 'envoyee'].includes(d.etat)} demandeNbHommes={d.nb_hommes} presets={ops??[]} meId={me?.id} canPhoto={!!me && (isDispatch || d.coordinateur_id === me.id)} />)}
                 </div>))}
               {(ops ?? []).length === 0 && <p className="text-sm text-mute">Aucune opération.</p>}
               {d.etat === 'envoyee' && isDispatch && <p className="text-xs text-mute">Acceptez la demande pour pouvoir la planifier.</p>}
             </div>
           </Panel>
+          <FieldReports operations={ops??[]}/>
           {(isOwner || isDispatch) && !['terminee', 'annulee'].includes(d.etat) && <div id="modifier-adresses" className="scroll-mt-20"><EditDemande demande={d} /></div>}
         </div>
         <div className="space-y-4">

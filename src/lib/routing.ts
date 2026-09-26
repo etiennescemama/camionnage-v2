@@ -1,6 +1,12 @@
+const profileFields: Record<string,string>={hauteur_cm:'height',largeur_cm:'width',longueur_cm:'length',ptac_kg:'grossWeight',essieux:'axleCount'};
+export function missingVehicleFields(c:any) {
+  const labels:Record<string,string>={hauteur_cm:'hauteur',largeur_cm:'largeur',longueur_cm:'longueur',ptac_kg:'PTAC',essieux:'essieux'};
+  return Object.keys(profileFields).filter(k=>!Number.isFinite(Number(c[k])) || Number(c[k])<=0).map(k=>labels[k]);
+}
 export function vehicleParameters(c:any) {
-  for(const key of ['hauteur_cm','largeur_cm','longueur_cm','ptac_kg','essieux']) if(!Number.isFinite(Number(c[key])) || Number(c[key])<=0) throw new Error('Profil routier incomplet : renseignez dimensions, PTAC et essieux dans Référentiels → Camions.');
-  const q=new URLSearchParams({transportMode:c.poids_lourd?'truck':'car','vehicle[height]':String(c.hauteur_cm),'vehicle[width]':String(c.largeur_cm),'vehicle[length]':String(c.longueur_cm),'vehicle[grossWeight]':String(c.ptac_kg),'vehicle[currentWeight]':String(c.ptac_kg),'vehicle[axleCount]':String(c.essieux)});
+  const q=new URLSearchParams({transportMode:c.poids_lourd?'truck':'car'});
+  for(const [key,param] of Object.entries(profileFields))if(Number.isFinite(Number(c[key])) && Number(c[key])>0)q.set(`vehicle[${param}]`,String(c[key]));
+  if(q.has('vehicle[grossWeight]'))q.set('vehicle[currentWeight]',q.get('vehicle[grossWeight]')!);
   if(!c.poids_lourd)q.set('vehicle[commercial]','true');
   return q;
 }

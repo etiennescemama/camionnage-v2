@@ -23,7 +23,7 @@ export interface Operation {
   periode: 'aller' | 'retour'; jour: number; rotation: number; consignes: string | null; heure_arrivee: string | null; heure_depart: string | null; compte_rendu: string | null; signature_nom: string | null;
 }
 export const ETAT_LABEL: Record<DemandeEtat, string> = {
-  brouillon: 'Brouillon', envoyee: 'À traiter', acceptee: 'Acceptée', planifiee: 'Planifiée', en_cours: 'En cours', terminee: 'Terminée', refusee: 'Refusée', annulee: 'Annulée',
+  brouillon: 'Brouillon', envoyee: 'À traiter', acceptee: 'À affecter', planifiee: 'Planifiée', en_cours: 'En cours', terminee: 'Réalisée · retour à vérifier', refusee: 'Refusée', annulee: 'Annulée',
 };
 export const ETAT_CLASS: Record<DemandeEtat, string> = {
   brouillon: 'bg-fog text-mute', envoyee: 'bg-ochre-soft text-ochre', acceptee: 'bg-cobalt-soft text-cobalt-ink', planifiee: 'bg-moss-soft text-moss',

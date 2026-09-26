@@ -4,12 +4,12 @@ import { cn, fmtDate } from '@/lib/utils';
 
 export type Creneau = { jour: string; demi: 'matin' | 'apres_midi'; camions_libres: number; hommes_libres: number; camions_ids: string[] };
 
-export function useCreneaux(from: string, to: string, volume: number, hayon: boolean, clim: boolean, duree: number) {
+export function useCreneaux(from: string, to: string, volume: number, hayon: boolean, clim: boolean, duree: number, enabled=true) {
   const [data, setData] = useState<Creneau[]>([]); const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     setData([]); setError(null);
-    if (!from || !to || from.includes('NaN') || to.includes('NaN')) { setLoading(false); return; }
+    if (!enabled || !from || !to || from.includes('NaN') || to.includes('NaN')) { setLoading(false); return; }
     let alive = true; const controller = new AbortController(); setLoading(true);
     const timer = setTimeout(async () => {
       try {
@@ -21,7 +21,7 @@ export function useCreneaux(from: string, to: string, volume: number, hayon: boo
       finally { if (alive) setLoading(false); }
     }, 300);
     return () => { alive = false; clearTimeout(timer); controller.abort(); };
-  }, [from, to, volume, hayon, clim, duree]);
+  }, [from, to, volume, hayon, clim, duree, enabled]);
   return { data, loading, error };
 }
 

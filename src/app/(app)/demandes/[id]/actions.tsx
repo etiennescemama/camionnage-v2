@@ -18,7 +18,6 @@ export function DemandeActions({ id, numero, etat, isDispatch, isOwner }: { id: 
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap gap-2 justify-end">
         {isDispatch && etat === 'envoyee' && <><Button onClick={() => act('accepter')} disabled={busy}><Check className="h-4 w-4" />Accepter</Button><Button variant="secondary" onClick={() => setRefus(true)} disabled={busy}><ThumbsDown className="h-4 w-4" />Refuser</Button></>}
-        {isDispatch && ['planifiee', 'en_cours', 'acceptee'].includes(etat) && <Button variant="success" onClick={() => act('terminer')} disabled={busy}><CheckCheck className="h-4 w-4" />Terminer</Button>}
         {isOwner && etat === 'refusee' && <Button onClick={() => act('renvoyer')} disabled={busy}><Send className="h-4 w-4" />Renvoyer au dispatch</Button>}
         {(isOwner || isDispatch) && !['terminee', 'annulee'].includes(etat) && <Button variant="ghost" onClick={() => confirm(`Annuler la demande ${numero} ?`) && act('annuler')} disabled={busy} className="text-brick"><XCircle className="h-4 w-4" />Annuler</Button>}
       </div>

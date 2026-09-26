@@ -20,3 +20,43 @@ summary { cursor: pointer; }
   .mission-sheet { border: 0; padding: 0 !important; border-radius: 0; }
   .mission-operation { break-inside: avoid; }
 }
+
+/* Operations design system — 2.3 */
+body { letter-spacing: -.012em; }
+.app-sidebar { background: #1c2023; }
+h1 { letter-spacing: -.045em; line-height: 1.12; }
+h2 { letter-spacing: -.025em; }
+.app-main h1 { font-size: clamp(1.9rem, 3vw, 2.7rem); font-weight: 600; }
+.app-main > div > header { padding-top: 2rem; padding-bottom: 1.5rem; }
+.app-main th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 500; color: #62666b; padding-top: 14px; padding-bottom: 14px; }
+.app-main td { padding-top: 13px; padding-bottom: 13px; }
+input, select, textarea { accent-color: #242a30; }
+input[type=checkbox] { width: 16px; height: 16px; vertical-align: middle; }
+:focus-visible { outline-color: #536b83; }
+.planning-metrics p { margin-top: 8px; color: #62666b; font-size: .75rem; }
+.driver-workspace { padding-top: 28px; }
+.driver-workspace h1 { font-size: 2rem; }
+.driver-primary > header { background: #242a30; color: white; padding: 24px; }
+.driver-primary > header .text-mute { color: #c0c7cc; }
+.driver-primary > header span { background: #ffffff18; }
+.driver-primary > header strong { font-size: 2rem; font-weight: 500; letter-spacing: -.04em; }
+.driver-primary > div { padding: 24px; }
+.login-shell { display: grid; grid-template-columns: 1.1fr 1fr; min-height: 100svh; background: white; }
+.login-editorial { background: #1c2023; color: white; padding: clamp(32px,6vw,96px); display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+.login-editorial::after { content: ''; position: absolute; width: 75%; aspect-ratio: 1; border: 1px solid #ffffff15; transform: rotate(-15deg); right: -25%; top: 20%; pointer-events: none; }
+.login-editorial h1 { font-size: clamp(42px,5vw,78px); max-width: 620px; font-weight: 500; position: relative; z-index: 1; }
+.login-form-area { display: grid; align-content: center; padding: clamp(28px,6vw,96px); }
+@media(max-width:767px) {
+ .app-main h1 { font-size: 1.9rem; }
+ .app-main > div > header { padding-top: 1.5rem; }
+ .login-shell { display: block; }
+ .login-editorial { min-height: 300px; gap: 36px; }
+ .login-editorial h1 { font-size: 40px; }
+ .login-editorial footer { display: none; }
+ input:not([type=checkbox]):not([type=radio]),select,textarea { font-size: 16px; }
+}
+@media print { .workspace-bar { display: none !important; } }
+@media(max-width:1023px){
+ .mobile-submit-dock{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));left:0;right:0;z-index:25;background:#fff;border-top:1px solid #e1e2df;padding:12px 16px;box-shadow:0 -4px 16px #191b1d08;}
+}
+@media(min-width:768px) and (max-width:1023px){.mobile-submit-dock{left:240px;bottom:0}}

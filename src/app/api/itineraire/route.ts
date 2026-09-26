@@ -2,7 +2,7 @@ import {NextRequest,NextResponse} from 'next/server';
 import {z} from 'zod';
 import {decode} from '@here/flexpolyline';
 import {apiContext} from '@/lib/api-auth';
-import {vehicleParameters,summarizeRoute} from '@/lib/routing';
+import {vehicleParameters,missingVehicleFields,summarizeRoute} from '@/lib/routing';
 const point=z.object({lat:z.number().min(-90).max(90),lng:z.number().min(-180).max(180)});
 export async function POST(req:NextRequest) {
   const ctx=await apiContext(req);if(!ctx)return NextResponse.json({error:'Accès non autorisé.'},{status:401});
@@ -17,7 +17,7 @@ export async function POST(req:NextRequest) {
       const r=await fetch('https://router.hereapi.com/v8/routes?'+q,{cache:'no-store',signal:AbortSignal.timeout(20000)});
       if(!r.ok)throw new Error('Calcul indisponible pour ce véhicule. Vérifiez le profil et les droits HERE.');
       const j=await r.json();if(!j.routes?.[0])throw new Error('Aucun itinéraire trouvé.');
-      const route=j.routes[0];return {id:c.id,numero:c.numero,...summarizeRoute(route),lines:route.sections.map((s:any)=>decode(s.polyline).polyline.map((p:number[])=>[p[0],p[1]]))};
+      const route=j.routes[0];const summary=summarizeRoute(route);const missing=missingVehicleFields(c);if(missing.length){summary.toll_eur=null;summary.notices.unshift({title:`Estimation avec profil incomplet (${missing.join(', ')}). Compatibilité du trajet non validée pour ce véhicule ; complétez Référentiels → Camions. Péage non calculable de manière fiable.`,severity:'warning'});}return {id:c.id,numero:c.numero,...summary,profile_incomplete:missing.length>0,lines:route.sections.map((s:any)=>decode(s.polyline).polyline.map((p:number[])=>[p[0],p[1]]))};
     } catch(e) {return {id:c.id,numero:c.numero,error:e instanceof Error?e.message:'Calcul indisponible'};}
   }));
   return NextResponse.json({results,calculated_at:new Date().toISOString()},{headers:{'Cache-Control':'private, no-store'}});

@@ -9,5 +9,5 @@ const V_CLASS: Record<V, string> = {
   success: 'bg-moss text-white hover:opacity-90',
 };
 export function Button({ className, variant = 'primary', size = 'md', ...p }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: V; size?: 'sm' | 'md' }) {
-  return <button className={cn('inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-cobalt', size === 'sm' ? 'h-8 px-3 text-sm' : 'h-10 px-4 text-sm', V_CLASS[variant], className)} {...p} />;
+  return <button className={cn('inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-cobalt', size === 'sm' ? 'h-8 px-3 text-sm' : 'h-11 px-5 text-sm', V_CLASS[variant], className)} {...p} />;
 }
